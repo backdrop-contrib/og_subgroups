@@ -107,7 +107,7 @@ function og_subgroups_views_api() {
  * Implements hook_node_grants().
  */
 function og_subgroups_node_grants($account, $op) {
-  if ($op != 'view') {
+  if ($op != 'view' || !module_exists('og_access')) {
     return;
   }
   $grants = array();
@@ -124,7 +124,7 @@ function og_subgroups_node_grants($account, $op) {
  * Implements hook_node_access_records_alter().
  */
 function og_subgroups_node_access_records_alter(&$grants, $node) {
-  if (!empty($node->status) && og_is_group_type('node', $node->type)) {
+  if (!empty($node->status) && og_is_group_type('node', $node->type) && module_exists('og_access')) {
     // Since subgroups are technically group content, they inherit group access.
     // Removes parents groups that should not inherit view permission from.
     $all_parent = og_subgroups_parents_load('node', $node->nid, FALSE, FALSE, FALSE, TRUE);
