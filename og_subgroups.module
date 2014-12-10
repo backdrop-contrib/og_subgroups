@@ -89,8 +89,8 @@ function og_subgroups_og_fields_info() {
 
 function og_subgroups_og_user_inhertiance_permission_allowed_values() {
   return array(
-    OG_USER_INHERITANCE_PERMISSION_INHERIT => t('Inherit Permissions - inherited users will also same permissions as this group'),
-    OG_USER_INHERITANCE_PERMISSION_CHILD => t("Child's permissions - inherited users will have child group's default member permission."),
+    OG_USER_INHERITANCE_PERMISSION_INHERIT => t("Inherit Permissions - inherited users in this group's subgroups will have the permissions as they do in this group and not the permissions of generic members of that subgroup."),
+    OG_USER_INHERITANCE_PERMISSION_CHILD => t("Child's permissions - inherited users in this group's subgroups will have the permissions of a generic member of that subgroup."),
   );
 }
 
