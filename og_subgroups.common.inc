@@ -148,20 +148,18 @@ function og_subgroups_get_associated_entities($entity_type, $entity, $fields = a
     return $cache[$entity_type][$id];
   }
   $cache[$entity_type][$id] = array();
-  $query = new EntityFieldQuery();
-  $query
-  ->entityCondition('entity_type', 'og_membership', '=')
-  ->propertyCondition('entity_type', 'user', '!=')
-  ->propertyCondition('group_type', $entity_type, '=')
-  ->propertyCondition('gid', $id, '=');
+  $query = db_select('og_membership')
+  ->condition('entity_type', 'user', '!=')
+  ->condition('group_type', $entity_type, '=')
+  ->condition('gid', $id, '=');
   if ($fields || ($fields !== FALSE && $fields = variable_get('og_subgroups_default_fields_' . $entity_type, array()))) {
-    $query->propertyCondition('field_name', $fields, 'IN');
+    $query->condition('field_name', $fields, 'IN');
   }
+  $query->fields('og_membership', array('entity_type', 'id', 'etid'));
   $result = $query->execute();
-  if (!empty($result['og_membership'])) {
+  if ($result) {
     // Get the group ID from the group membership.
-    $og_memberships = og_membership_load_multiple(array_keys($result['og_membership']));
-    foreach ($og_memberships as $og_membership) {
+    foreach ($result as $og_membership) {
       $cache[$entity_type][$id][$og_membership->entity_type][$og_membership->id] = $og_membership->etid;
     }
   }
