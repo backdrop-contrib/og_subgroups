@@ -167,6 +167,30 @@ function og_subgroups_get_associated_entities($entity_type, $entity, $fields = a
 }
 
 /**
+ * Get all parents that could exist.
+ */
+function og_subgroups_get_potentional_parents($entity_type, $fields = array()) {
+  $cache = &drupal_static(__FUNCTION__, array());
+  if (!isset($cache[$entity_type])) {
+    if ($cache = cache_get(__FUNCTION__ . '::' . $entity_type)) {
+      $cache[$entity_type] = $cache->data;
+    }
+    else {
+      $query = db_select('og_membership')
+        ->distinct()
+        ->condition('entity_type', 'user', '!=')
+        ->condition('group_type', $entity_type, '=');
+      if ($fields || ($fields !== FALSE && $fields = variable_get('og_subgroups_default_fields_' . $entity_type, array()))) {
+        $query->condition('field_name', $fields, 'IN');
+      }
+      $query->fields('og_membership', array('gid'));
+      $cache[$entity_type] = $query->execute()->fetchCol();
+    }
+  }
+  return $cache[$entity_type];
+}
+
+/**
  * Return an array of inherited users from the parent groups that
  * allow for user inheritance.
  *
@@ -363,9 +387,22 @@ function og_subgroups_children_load($group_type, $group_id, $filter = TRUE, $fet
 /**
  * Get the inheriented groups + current group.
  */
-function og_subgroups_children_load_multiple($groups, $filter = TRUE, $fetch_all = TRUE, $include_current = TRUE, $reset = FALSE) {
+function og_subgroups_children_load_multiple($groups, $filter = TRUE, $fetch_all = TRUE, $include_current = TRUE, $reset = FALSE, $main_level = TRUE) {
   $group_cache = &drupal_static(__FUNCTION__, array());
   $return = array();
+  // Deep trees make the regular caching less then effective, so allow
+  // performance improvements for sites that have deep trees that may
+  // not be best for flatter sites.
+  $deep_tree_performance = variable_get('og_subgroups_deep_tree_performance', FALSE);
+  $group_cache_all = &drupal_static(__FUNCTION__ . '_all', array());
+  // Recursion protection protects both from infinite recursion and from
+  // reprocessing the same children if a parent is the child of two groups.
+  if ($main_level && $deep_tree_performance) {
+    $all_cid = print_r($groups, 1) . ':' . ($filter ? 1 : 0) . ':' . ($fetch_all ? 1 : 0) . ':' . ($include_current ? 1 : 0);
+    if ($deep_tree_performance && isset($group_cache_all[$all_cid])) {
+      return $group_cache_all[$all_cid];
+    }
+  }
 
   foreach ($groups as $group_type => $group_ids) {
     // Reprocess all if resetting.
@@ -417,13 +454,32 @@ function og_subgroups_children_load_multiple($groups, $filter = TRUE, $fetch_all
         cache_set($cid, $group_cache[$cid]);
       }
     }
+
     // Add them to return array.
     foreach ($group_ids as $group_id) {
       $cid = _og_subgroups_load_multiple_cid('children', $group_type, $group_id, $filter);
+      $current_return = $return;
       $return = og_subgroups_merge_groups($return, $group_cache[$cid]);
       // If current group has not been processed, process it's children.
       if ($fetch_all && !isset($return[$group_type][$group_id]) && !empty($group_cache[$cid])) {
-        $return = og_subgroups_merge_groups($return, og_subgroups_children_load_multiple($group_cache[$cid], $filter, $fetch_all, TRUE, $reset));
+        // We want to find children that we haven't processed yet and that could be parents.
+        $process_children = array();
+        foreach ($group_cache[$cid] as $new_group_type => $children) {
+          // If it's in return before current children added, it's already been processed.
+          $not_processed = !empty($current_return[$group_type]) ? array_diff($children, $current_return[$group_type]) : $children;
+          unset($children[$group_type][$group_id]);
+          // If performing for big trees, remove any ones that don't have any children.
+          if ($deep_tree_performance && ($potentional_parents = og_subgroups_get_potentional_parents($group_type))) {
+            $process_children[$new_group_type] = array_intersect($not_processed, $potentional_parents);
+          }
+          else {
+            $process_children[$new_group_type] = $not_processed;
+          }
+        }
+        // If we're optomizing for large tree, remove any children that aren't parents of anything.
+        if (array_filter($process_children)) {
+          $return = og_subgroups_merge_groups($return, og_subgroups_children_load_multiple($process_children, $filter, $fetch_all, TRUE, $reset, FALSE));
+        }
       }
       // Include current will generally be set for all but the originall caller.
       // which should prevent recurssion.
@@ -431,6 +487,9 @@ function og_subgroups_children_load_multiple($groups, $filter = TRUE, $fetch_all
         $return[$group_type][$group_id] = $group_id;
       }
     }
+  }
+  if (isset($all_cid) && $deep_tree_performance) {
+    $group_cache_all[$all_cid] = $return;
   }
 
   return $return;

@@ -322,4 +322,7 @@ function _og_subgroups_clear_caches_for_group($group_type, $group_id) {
     }
   }
   drupal_static_reset('og_subgroups_get_associated_entities');
+  drupal_static_reset('og_subgroups_get_potentional_parents');
+  drupal_static_reset('og_subgroups_children_load_multiple_all');
+  cache_clear_all('og_subgroups_get_potentional_parents', 'cache', TRUE);
 }
