@@ -277,6 +277,9 @@ function og_subgroups_parents_load($group_type, $group_id, $filter = TRUE, $fetc
   return $groups_all[$cid];
 }
 
+/**
+ * Same as og_subgroups_parents_load() but takes in an array of groups.
+ */
 function og_subgroups_parents_load_multiple($groups, $filter = TRUE, $fetch_all = TRUE, $include_current = TRUE, $reset = FALSE) {
   $group_cache = &drupal_static(__FUNCTION__, array());
   $return = array();
@@ -287,6 +290,7 @@ function og_subgroups_parents_load_multiple($groups, $filter = TRUE, $fetch_all 
       $process = $group_ids;
     }
     else {
+      // Only find group_ids we haven't looked up yet.
       $process = array();
       foreach ($group_ids as $group_id) {
         $cid = _og_subgroups_load_multiple_cid('parents', $group_type, $group_id, $filter);
@@ -301,14 +305,15 @@ function og_subgroups_parents_load_multiple($groups, $filter = TRUE, $fetch_all 
         }
       }
     }
+
     if ($process) {
-      foreach (entity_load($group_type, $process) as $group_id => $entity) {
+      foreach ($process as $group_id) {
         $key = array_search($group_id, $process);
         unset($process[$key]);
 
         $cid = _og_subgroups_load_multiple_cid('parents', $group_type, $group_id, $filter);
         $group_cache[$cid] = array();
-        if ($parent_groups = og_get_entity_groups($group_type, $entity)) {
+        if ($parent_groups = og_get_entity_groups($group_type, $group_id)) {
           foreach ($parent_groups as $parent_group_type => $parent_group_ids) {
             // If not filtering, than all ids are valid.
             if (!$filter) {
@@ -316,11 +321,8 @@ function og_subgroups_parents_load_multiple($groups, $filter = TRUE, $fetch_all 
             }
             // If filtering, need to check the inhertence field.
             else {
-              foreach (entity_load($parent_group_type, $parent_group_ids) as $parent_group_id => $parent_entity) {
-                $wrapper = entity_metadata_wrapper($parent_group_type, $parent_group_id);
-                if (empty($wrapper->{OG_USER_INHERITANCE_FIELD}) || $wrapper->{OG_USER_INHERITANCE_FIELD}->value()) {
-                  $group_cache[$cid][$parent_group_type][$parent_group_id] = $parent_group_id;
-                }
+              foreach (_og_subgroups_get_field_matching($parent_group_type, $parent_group_ids, OG_USER_INHERITANCE_FIELD, 1) as $parent_group_id) {
+                $group_cache[$cid][$parent_group_type][$parent_group_id] = $parent_group_id;
               }
             }
           }
@@ -335,8 +337,8 @@ function og_subgroups_parents_load_multiple($groups, $filter = TRUE, $fetch_all 
         $group_cache[$cid][$group_type] = array();
         cache_set($cid, $group_cache[$cid]);
       }
-
     }
+
     // Add them to return array.
     foreach ($group_ids as $group_id) {
       $cid = _og_subgroups_load_multiple_cid('parents', $group_type, $group_id, $filter);
@@ -353,6 +355,30 @@ function og_subgroups_parents_load_multiple($groups, $filter = TRUE, $fetch_all 
   }
 
   return $return;
+}
+
+/**
+ * Get groups with a a specific value for a field.
+ *
+ * @param $group_type
+ *  The type of entity.
+ * @param $group_id
+ *  The id of the entity.
+ * @param $field
+ *  The name of the field to test
+ * @param $value
+ *  The value of the field to test.
+ * @param $key
+ *  The specific key for the field.
+ */
+function _og_subgroups_get_field_matching($group_type, $gids, $field, $value, $key = 'value') {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', $group_type)
+    ->entityCondition('entity_id', $gids)
+    ->fieldCondition($field, $key, $value)
+    ->addTag('DANGEROUS_ACCESS_CHECK_OPT_OUT');
+  $result = $query->execute();
+  return !empty($result[$group_type]) ? array_keys($result[$group_type]) : array();
 }
 
 function _og_subgroups_load_multiple_cid($type, $group_type, $group_id, $filter) {
@@ -425,14 +451,14 @@ function og_subgroups_children_load_multiple($groups, $filter = TRUE, $fetch_all
       }
     }
     if ($process) {
-      foreach (entity_load($group_type, $process) as $group_id => $entity) {
+      $inheritated_groups = _og_subgroups_get_field_matching($group_type, $process, OG_USER_INHERITANCE_FIELD, 1);
+      foreach ($process as $group_id) {
         $key = array_search($group_id, $process);
         unset($process[$key]);
 
         $cid = _og_subgroups_load_multiple_cid('children', $group_type, $group_id, $filter);
         // If group does not inherient then no child groups.
-        $wrapper = entity_metadata_wrapper($group_type, $group_id);
-        if ($filter && (empty($wrapper->{OG_USER_INHERITANCE_FIELD}) || !$wrapper->{OG_USER_INHERITANCE_FIELD}->value())) {
+        if ($filter && !in_array($group_id, $inheritated_groups)) {
           $group_cache[$cid] = array();
         }
         else {
