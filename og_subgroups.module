@@ -67,7 +67,7 @@ function og_subgroups_og_fields_info() {
     'description' => t('Determines how permissions are given for inherited for inherited users.'),
     'entity' => array('node'),
     'field' => array(
-      'field_name' => OG_USER_INHERITANCE_PERMISSION_CHILD,
+      'field_name' => OG_USER_INHERITANCE_PERMISSION_FIELD,
       'no_ui' => TRUE,
       'type' => 'list_boolean',
       'cardinality' => 1,
