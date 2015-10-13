@@ -9,4 +9,3 @@ files[] = og_subgroups.module
 
 ; Test files.
 files[] = og_subgroups.test
-files[] = plugins/views/og_subgroups_plugin_argument_default_user_groups.inc
