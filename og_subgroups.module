@@ -18,15 +18,6 @@ define('OG_USER_INHERITANCE_PERMISSION_CHILD', 1);
 
 
 /**
- * Implements hook_ctools_plugin_directory().
- */
-function og_subgroups_ctools_plugin_directory($module, $plugin) {
-  if ($module == 'entityreference') {
-    return "plugins/entityreference/$plugin";
-  }
-}
-
-/**
  * Implements hook_og_fields_info().
  */
 function og_subgroups_og_fields_info() {
