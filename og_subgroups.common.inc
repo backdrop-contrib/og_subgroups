@@ -372,6 +372,9 @@ function og_subgroups_parents_load_multiple($groups, $filter = TRUE, $fetch_all 
  *  The specific key for the field.
  */
 function _og_subgroups_get_field_matching($group_type, $gids, $field, $value, $key = 'value') {
+  if (empty(field_info_field($field))) {
+    return array();
+  }
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', $group_type)
     ->entityCondition('entity_id', $gids)
