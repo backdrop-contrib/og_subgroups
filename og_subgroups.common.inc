@@ -210,7 +210,8 @@ function og_subgroups_get_potentional_parents($entity_type, $fields = array()) {
  */
 function _og_subgroups_get_inherited_users($group_type, $group_id, $states = array(OG_STATE_ACTIVE)) {
   $inherited_users = array();
-  foreach (og_subgroups_parents_load($group_type, $group_id) as $parent_type => $parent_ids) {
+  $parents = og_subgroups_parents_load($group_type, $group_id);
+  foreach ($parents as $parent_type => $parent_ids) {
     foreach ($parent_ids as $parent_id) {
       $users = og_subgroups_get_users_group($parent_type, $parent_id, $states);
       foreach ($users['user'] as $membership_id => $uid) {
