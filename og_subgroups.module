@@ -161,8 +161,11 @@ function og_subgroups_node_access_records_alter(&$grants, $node) {
     $all_parent = og_subgroups_parents_load('node', $node->nid, FALSE, TRUE, FALSE, TRUE);
     if (!empty($all_parent['node'])) {
       $gids = array();
+      
+      // Retrieve all parents that inherit.
+      // NOTE that this may not include immediate parents.
       $parents_with_inheritance = og_subgroups_parents_load('node', $node->nid, TRUE, TRUE, FALSE, TRUE);
-
+      
       // This is almost completely copied form og_access_node_access_records.
       // only difference is using $parents_with_inheritance vs og_get_entity_groups
       $wrapper = entity_metadata_wrapper('node', $node);
@@ -176,6 +179,12 @@ function og_subgroups_node_access_records_alter(&$grants, $node) {
       }
       switch ($content_access) {
         case OG_CONTENT_ACCESS_DEFAULT:
+          if (!og_is_group_type('node', $node->type)) {
+            // For content nodes, add back in the immediate parents regardless
+            // of user inheritance.
+            $immediate_parents = og_subgroups_parents_load('node', $node->nid, FALSE, FALSE);
+            $parents_with_inheritance = array_merge_recursive($immediate_parents, $parents_with_inheritance);
+          }
           if (!$parents_with_inheritance) {
             break;
           }
@@ -203,6 +212,12 @@ function og_subgroups_node_access_records_alter(&$grants, $node) {
           break;
         case OG_CONTENT_ACCESS_PRIVATE:
           $gids['node'][] = $node->nid;
+          if (!empty($wrapper->{OG_CONTENT_ACCESS_FIELD})) {
+            // Group also has content-access field
+            // Add back in the immediate parents regardless of user inheritance.
+            $immediate_parents = og_subgroups_parents_load('node', $node->nid, FALSE, FALSE);
+            $parents_with_inheritance = array_merge_recursive($immediate_parents, $parents_with_inheritance);
+          }
           $gids = array_merge_recursive($gids, $parents_with_inheritance);
           break;
       }
