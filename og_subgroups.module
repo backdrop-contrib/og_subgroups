@@ -43,7 +43,10 @@ function og_subgroups_og_fields_info() {
       'no_ui' => TRUE,
       'type' => 'list_boolean',
       'cardinality' => 1,
-      'settings' => array('allowed_values' => $allowed_values, 'allowed_values_function' => ''),
+      'settings' => array(
+        'allowed_values' => $allowed_values,
+        'allowed_values_function' => '',
+      ),
     ),
     'instance' => array(
       'label' => t('Group user inheritance'),
@@ -146,7 +149,7 @@ function og_subgroups_is_parent_private($group_type, $entity) {
   $result = (!empty($group_wrapper->{OG_ACCESS_FIELD}) && $group_wrapper->{OG_ACCESS_FIELD}->value());
   // Allow modules to alter this result.  Some groups might have different
   // fields or types to determine if their privacy should affect children.
-  drupal_alter('og_subgroups_is_parent_private', $result, $group_type, $entity);
+  backdrop_alter('og_subgroups_is_parent_private', $result, $group_type, $entity);
   return $result;
 }
 
@@ -154,18 +157,19 @@ function og_subgroups_is_parent_private($group_type, $entity) {
  * Implements hook_node_access_records_alter().
  */
 function og_subgroups_node_access_records_alter(&$grants, $node) {
+  // TODO This variable was probably removed in Backdrop without replacement.
   if (!empty($node->status) && module_exists('og_access')
-    && (og_is_group_type('node', $node->type) || (variable_get('og_subgroup_private_content', TRUE) && og_is_group_content_type('node', $node->type)))) {
+      && (og_is_group_type('node', $node->type) || (variable_get('og_subgroup_private_content', TRUE) && og_is_group_content_type('node', $node->type)))) {
     // Since subgroups are technically group content, they inherit group access.
     // However, that access is only one level deep so we need to redo it.
     $all_parent = og_subgroups_parents_load('node', $node->nid, FALSE, TRUE, FALSE, TRUE);
     if (!empty($all_parent['node'])) {
       $gids = array();
-      
+
       // Retrieve all parents that inherit.
       // NOTE that this may not include immediate parents.
       $parents_with_inheritance = og_subgroups_parents_load('node', $node->nid, TRUE, TRUE, FALSE, TRUE);
-      
+
       // This is almost completely copied form og_access_node_access_records.
       // only difference is using $parents_with_inheritance vs og_get_entity_groups
       $wrapper = entity_metadata_wrapper('node', $node);
@@ -236,7 +240,7 @@ function og_subgroups_node_access_records_alter(&$grants, $node) {
           $gids['node'][] = $node->nid;
         }
         foreach (array_unique($gids['node']) as $gid) {
-          $grants[] = array (
+          $grants[] = array(
             'realm' => OG_ACCESS_REALM . ':node',
             'gid' => $gid,
             'grant_view' => 1,
@@ -316,7 +320,7 @@ function _og_subgroups_check_access(&$perms, $context, $group_type, $id, $user_g
  */
 function og_subgroups_check_member_user_access($group_type, $gid, $string) {
   global $user;
-  $perm = &drupal_static(__FUNCTION__, array());
+  $perm = &backdrop_static(__FUNCTION__, array());
 
   $identifier = $group_type . ':' . $gid;
   if (!isset($perm[$identifier])) {
@@ -341,10 +345,21 @@ function og_subgroups_check_member_user_access($group_type, $gid, $string) {
 
 
 /**
+ * Implements hook_config_info().
+ */
+function og_subgroups_config_info() {
+  $prefixes['og_subgroups.settings'] = array(
+    'label' => t('Organic groups subgroups settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
+
+/**
  * Implements hook_og_membership_insert().
  */
 function og_subgroups_og_membership_insert(OgMembership $og_membership) {
-  $fields = variable_get('og_subgroups_default_fields_' . $og_membership->entity_type, array());
+  $fields = config_get('og_subgroups.settings', 'og_subgroups_default_fields_' . $og_membership->entity_type);
   if (in_array($og_membership->field_name, $fields)) {
     og_subgroups_clear_caches_for_group($og_membership->entity_type, $og_membership->etid);
     og_subgroups_clear_caches_for_group($og_membership->group_type, $og_membership->gid);
@@ -418,14 +433,24 @@ function _og_subgroups_clear_caches_for_group($group_type, $group_id) {
     ),
   );
   foreach ($clear as $function_name => $cids) {
-    $cache = &drupal_static($function_name, array());
+    $cache = &backdrop_static($function_name, array());
     foreach ($cids as $cid) {
       unset($cache[$cid]);
       cache_clear_all($cid, 'cache');
     }
   }
-  drupal_static_reset('og_subgroups_get_associated_entities');
-  drupal_static_reset('og_subgroups_get_potentional_parents');
-  drupal_static_reset('og_subgroups_children_load_multiple_all');
+  backdrop_static_reset('og_subgroups_get_associated_entities');
+  backdrop_static_reset('og_subgroups_get_potentional_parents');
+  backdrop_static_reset('og_subgroups_children_load_multiple_all');
   cache_clear_all('og_subgroups_get_potentional_parents', 'cache', TRUE);
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function og_subgroups_autoload_info() {
+  return array(
+    'OgSubgroupsSelectionHandler' => 'plugins/entityreference/selection/OgSubgroupsSelectionHandler.class.php',
+    'og_subgroups_plugin_argument_default_user_groups' => 'plugins/views/og_subgroups_plugin_argument_default_user_groups.inc',
+  );
 }

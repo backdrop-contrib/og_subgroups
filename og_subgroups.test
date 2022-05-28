@@ -5,7 +5,7 @@
  * Testing functions for OG Subgroups.
  */
 
-class OgSubgroupHelperFunctionUnitTestCase extends DrupalUnitTestCase {
+class OgSubgroupHelperFunctionUnitTestCase extends BackdropUnitTestCase {
   /**
    * Array to use for testing.
    *
@@ -23,10 +23,10 @@ class OgSubgroupHelperFunctionUnitTestCase extends DrupalUnitTestCase {
 
 
   /**
-   * Tests drupal_array_diff_assoc_recursive().
+   * Tests backdrop_array_diff_assoc_recursive().
    */
   public function testOgSubgroupHelperFunctions() {
-    drupal_load('module', 'og_subgroups');
+    backdrop_load('module', 'og_subgroups');
     $array_one = array(
       'entity_type_1' => array(0, 1, 2, 3),
       'entity_type_2' => array(0, 1, 2),
@@ -56,12 +56,12 @@ class OgSubgroupHelperFunctionUnitTestCase extends DrupalUnitTestCase {
 /**
  * Test the Organic groups subgroups API.
  */
-class OgSubgroupsAccessFromDescendanceTestCase extends DrupalWebTestCase {
+class OgSubgroupsAccessFromDescendanceTestCase extends BackdropWebTestCase {
   public static function getInfo() {
     return array(
       'name' => 'Organic groups Subgroups permissions inheritance',
       'description' => 'Test the access of users to subgroups.',
-      'group' => 'Organic groups subgroups'
+      'group' => 'Organic groups subgroups',
     );
   }
 
@@ -86,8 +86,8 @@ class OgSubgroupsAccessFromDescendanceTestCase extends DrupalWebTestCase {
    */
   function testOgSubgroupsPermissions() {
     // Create user.
-    $user1 = $this->drupalCreateUser();
-    $user2 = $this->drupalCreateUser();
+    $user1 = $this->backdropCreateUser();
+    $user2 = $this->backdropCreateUser();
     $og_roles = og_roles('entity_test', 'main');
     $test_perm = 'create article content';
     $test_perm2 = 'update any article content';
@@ -123,8 +123,8 @@ class OgSubgroupsAccessFromDescendanceTestCase extends DrupalWebTestCase {
     $children = og_subgroups_children_load('entity_test', $group_parent_inherit->pid);
     $this->assertTrue(!empty($children['entity_test'][$group_child->pid]), t('Child group found via og_subgroups_children_load'));
 
-    drupal_static_reset('og_user_access');
-    drupal_static_reset('og_user_access_alter');
+    backdrop_static_reset('og_user_access');
+    backdrop_static_reset('og_user_access_alter');
     $this->assertTrue(og_user_access('entity_test', $group_child->pid, $test_perm, $user2), t('User part of parent group has test permission in child.'));
 
     // Now make a grandchild.
@@ -148,8 +148,8 @@ class OgSubgroupsAccessFromDescendanceTestCase extends DrupalWebTestCase {
     $this->assertTrue(!empty($children['entity_test'][$group_child->pid]), t('Child group found via og_subgroups_children_load'));
     $this->assertTrue(!empty($children['entity_test'][$group_grand_child->pid]), t('Child group found via og_subgroups_children_load'));
 
-    drupal_static_reset('og_user_access');
-    drupal_static_reset('og_user_access_alter');
+    backdrop_static_reset('og_user_access');
+    backdrop_static_reset('og_user_access_alter');
     $this->assertTrue(og_user_access('entity_test', $group_child->pid, $test_perm, $user2), t('User part of parent group has test permission in child.'));
 
 
@@ -184,8 +184,8 @@ class OgSubgroupsAccessFromDescendanceTestCase extends DrupalWebTestCase {
     $children = og_subgroups_children_load('entity_test', $group_parent_no_inherit->pid);
     $this->assertTrue(!empty($children['entity_test'][$group_child_no_inherit->pid]), t('Child group found via og_subgroups_children_load'));
 
-    drupal_static_reset('og_user_access');
-    drupal_static_reset('og_user_access_alter');
+    backdrop_static_reset('og_user_access');
+    backdrop_static_reset('og_user_access_alter');
     $this->assertFalse(og_user_access('entity_test', $group_child_no_inherit->pid, $test_perm, $user2), t('User part of parent group does not have test permission in child.'));
     $this->assertTrue(og_user_access('entity_test', $group_child_no_inherit->pid, $test_perm2, $user2), t('User part of parent group does have test permission in child.'));
 

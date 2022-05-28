@@ -40,7 +40,10 @@ class og_subgroups_plugin_argument_default_user_groups extends views_plugin_argu
       '#type' => 'select',
       '#title' => t('Concatenator'),
       '#description' => t('Select the concatenator used to merge multiple group IDs. Remember to turn on the "Allow multiple values" option in the "more" settings for this contextual filter.'),
-      '#options' => array('+' => '+', ',' => ','),
+      '#options' => array(
+        '+' => '+',
+        ',' => ',',
+      ),
       '#default_value' => $this->options['glue'],
     );
   }
@@ -56,7 +59,7 @@ class og_subgroups_plugin_argument_default_user_groups extends views_plugin_argu
     $sub_gids = og_subgroup_user_groups_load($user);
     if (is_array($gids) || isset($sub_gids['node'])) {
       $total_gids = !empty($sub_gids['node']) ? $gids + $sub_gids['node'] : $gids;
-      
+
       if (!empty($total_gids)) {
         return implode($this->options['glue'], $total_gids);
       }
