@@ -14,7 +14,7 @@ When a hierarchy has been established, user memberships and/or content posted to
 
 ### Drupal 7 version:
 
-- [bshilt](hhttps://www.drupal.org/u/bschilt)
+- [bshilt](https://www.drupal.org/u/bschilt)
 - [amitaibu](https://www.drupal.org/u/amitaibu)
 - [ezra-g](https://www.drupal.org/u/ezra-g)
 - [mpotter](https://www.drupal.org/u/mpotter)
