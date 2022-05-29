@@ -18,12 +18,16 @@ define('OG_USER_INHERITANCE_PERMISSION_CHILD', 1);
 
 
 /**
- * Implements hook_ctools_plugin_directory().
+ * Implements hook_entityreference_selection_plugins().
  */
-function og_subgroups_ctools_plugin_directory($module, $plugin) {
-  if ($module == 'entityreference') {
-    return "plugins/entityreference/$plugin";
-  }
+function og_entityreference_selection_plugins() {
+  $plugins = array(
+    'og_subgroups' => array(
+      'title' => t('Organic groups Subgroups'),
+      'class' => 'OgSubgroupsSelectionHandler',
+    ),
+  );
+  return $plugins;
 }
 
 /**
@@ -157,9 +161,11 @@ function og_subgroups_is_parent_private($group_type, $entity) {
  * Implements hook_node_access_records_alter().
  */
 function og_subgroups_node_access_records_alter(&$grants, $node) {
+  $config = config('og_subgroups.settings');
+
   // TODO This variable was probably removed in Backdrop without replacement.
   if (!empty($node->status) && module_exists('og_access')
-      && (og_is_group_type('node', $node->type) || (variable_get('og_subgroup_private_content', TRUE) && og_is_group_content_type('node', $node->type)))) {
+      && (og_is_group_type('node', $node->type) || ($config->get('og_subgroup_private_content') && og_is_group_content_type('node', $node->type)))) {
     // Since subgroups are technically group content, they inherit group access.
     // However, that access is only one level deep so we need to redo it.
     $all_parent = og_subgroups_parents_load('node', $node->nid, FALSE, TRUE, FALSE, TRUE);
@@ -324,7 +330,7 @@ function og_subgroups_check_member_user_access($group_type, $gid, $string) {
 
   $identifier = $group_type . ':' . $gid;
   if (!isset($perm[$identifier])) {
-    $group = entity_load_single($group_type, $gid);
+    $group = entity_load($group_type, $gid);
     $query_gid = og_is_group_default_access($group_type, $gid) ? 0 : $gid;
     // Get the bundle of the group.
     list($id, $vid, $bundle) = entity_extract_ids($group_type, $group);

@@ -5,27 +5,20 @@
  *
  */
 
-
 /**
  * Migrate og_subgroups variables to config.
  */
 function og_subgroups_update_1000() {
   $config = config('og_subgroups.settings');
-  $config->set('og_subgroups_default_fields_entity_type', update_variable_get('og_subgroups_default_fields_entity_type', 'dynamic variable in file /og_subgroups/og_subgroups.common.inc line 213'));
-  $config->set('og_subgroups_deep_tree_performance', update_variable_get('og_subgroups_deep_tree_performance', array()));
-  $config->set('og_subgroups_default_fields_og_membershipentity_type', update_variable_get('og_subgroups_default_fields_og_membershipentity_type', 'dynamic variable in file /og_subgroups/og_subgroups.module line 347'));
+  
+  $config->set('og_subgroups_deep_tree_performance', update_variable_get('og_subgroups_deep_tree_performance', FALSE));
+  $config->set('og_subgroup_private_content', update_variable_get('og_subgroup_private_content', TRUE));
+  foreach (og_membership_type_load() as $type => $info) {
+    $config->set('og_subgroups_default_fields_' . $type, update_variable_get('og_subgroups_default_fields_' . $type, array()));  
+    update_variable_del('og_subgroups_default_fields_' . $type);  
+  }
   $config->save();
 
-  update_variable_del('og_subgroups_default_fields_entity_type');
   update_variable_del('og_subgroups_deep_tree_performance');
-  update_variable_del('og_subgroups_default_fields_og_membershipentity_type');
-}
-
-/**
- * Implements hook_install().
- */
-function og_subgroups_install() {
-  // Dynamically generated variable data was detected.
-  // /og_subgroups/og_subgroups.common.inc line 213
-  // /og_subgroups/og_subgroups.module line 347
+  update_variable_del('og_subgroup_private_content');
 }

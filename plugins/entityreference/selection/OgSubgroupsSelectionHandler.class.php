@@ -34,7 +34,7 @@ class OgSubgroupsSelectionHandler extends OgSelectionHandler {
       return parent::buildEntityFieldQuery($match, $match_operator);
     }
 
-    $handler = EntityReference_SelectionHandler_Generic::getInstance($this->field, $this->instance, $this->entity_type, $this->entity);
+    $handler = EntityReferenceSelectionHandlerGeneric::getInstance($this->field, $this->instance, $this->entity_type, $this->entity);
     $query = $handler->buildEntityFieldQuery($match, $match_operator);
 
     // FIXME: http://drupal.org/node/1325628

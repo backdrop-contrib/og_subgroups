@@ -5,5 +5,3 @@ package = "Organic groups"
 dependencies[] = og
 backdrop = 1.x
 type = module
-version = VERSION
-; Test files.
