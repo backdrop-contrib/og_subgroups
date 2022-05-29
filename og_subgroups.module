@@ -20,7 +20,7 @@ define('OG_USER_INHERITANCE_PERMISSION_CHILD', 1);
 /**
  * Implements hook_entityreference_selection_plugins().
  */
-function og_entityreference_selection_plugins() {
+function og_subgroups_entityreference_selection_plugins() {
   $plugins = array(
     'og_subgroups' => array(
       'title' => t('Organic groups Subgroups'),
