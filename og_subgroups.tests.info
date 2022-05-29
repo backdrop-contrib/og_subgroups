@@ -1,0 +1,12 @@
+[OgSubgroupHelperFunctionUnitTestCase]
+name = og_subgroups_intersect_groups and og_subgroups_diff_groups
+description = Tests helper functions.
+group = OG Subgroups
+file = og_subgroups.test
+
+[OgSubgroupsAccessFromDescendanceTestCase]
+name = Organic groups Subgroups permissions inheritance
+description = Test the access of users to subgroups.
+group = Organic groups subgroups
+file = og_subgroups.test
+

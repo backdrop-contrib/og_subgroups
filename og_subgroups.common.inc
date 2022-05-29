@@ -59,8 +59,8 @@ function og_subgroup_user_groups_load($account = NULL, $inheriented_only = TRUE)
   }
   $children_groups = array();
   $groups = og_get_entity_groups('user', $account);
-  $new_groups = $groups?og_subgroups_children_load_multiple($groups, TRUE, TRUE, !$inheriented_only) : array();
-  return $new_groups && $inheriented_only?og_subgroups_diff_groups($new_groups, $groups) : $new_groups;
+  $new_groups = $groups ? og_subgroups_children_load_multiple($groups, TRUE, TRUE, !$inheriented_only) : array();
+  return $new_groups && $inheriented_only ? og_subgroups_diff_groups($new_groups, $groups) : $new_groups;
 }
 
 /**
@@ -167,7 +167,7 @@ function og_subgroups_get_associated_entities($entity_type, $entity, $fields = a
   if ($groups_only) {
     // Get all group bundles of this entity type in an array.
     $group_all_bundles = og_get_all_group_bundle();
-    $group_bundles = isset($group_all_bundles[$entity_type])?array_keys($group_all_bundles[$entity_type]) : array();
+    $group_bundles = isset($group_all_bundles[$entity_type]) ? array_keys($group_all_bundles[$entity_type]) : array();
     // Return early if there are no group bundles in this entity type.
     if (empty($group_bundles)) {
       return $cache[$entity_type][$id][$groups_only_key];
@@ -527,7 +527,7 @@ function og_subgroups_children_load_multiple($groups, $filter = TRUE, $fetch_all
         $process_children = array();
         foreach ($group_cache[$cid] as $new_group_type => $children) {
           // If it's in return before current children added, it's already been processed.
-          $not_processed = !empty($current_return[$group_type])?array_diff($children, $current_return[$group_type]) : $children;
+          $not_processed = !empty($current_return[$group_type]) ? array_diff($children, $current_return[$group_type]) : $children;
           unset($children[$group_type][$group_id]);
           // If performing for big trees, remove any ones that don't have any children.
           if ($deep_tree_performance && ($potentional_parents = og_subgroups_get_potentional_parents($group_type))) {
