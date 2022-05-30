@@ -12,7 +12,10 @@ When a hierarchy has been established, user memberships and/or content posted to
 
 ## Current Maintainers
 
-### Drupal 7 version:
+- Ported to Backdrop CMS and maintained by [argiepiano](https://github.com/argiepiano)
+- Seeking co-maintainers
+
+#### Drupal 7 version maintainers:
 
 - [bshilt](https://www.drupal.org/u/bschilt)
 - [amitaibu](https://www.drupal.org/u/amitaibu)
