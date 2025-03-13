@@ -366,7 +366,7 @@ function og_subgroups_config_info() {
  */
 function og_subgroups_og_membership_insert(OgMembership $og_membership) {
   $fields = config_get('og_subgroups.settings', 'og_subgroups_default_fields_' . $og_membership->entity_type);
-  if (in_array($og_membership->field_name, $fields)) {
+  if (!empty($fields) && in_array($og_membership->field_name, $fields)) {
     og_subgroups_clear_caches_for_group($og_membership->entity_type, $og_membership->etid);
     og_subgroups_clear_caches_for_group($og_membership->group_type, $og_membership->gid);
   }
