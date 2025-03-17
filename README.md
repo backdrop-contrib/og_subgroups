@@ -3,20 +3,32 @@
 ## Description
 
 The Organic Groups Subgroups module (also referred to as the 'og-subgroups'
-+module), provides propagation of user memberships and content memberships to
-groups.
+module) enables a user with the proper permissions to build group hierarchies
+(or tree) by nesting groups under other groups. Simple or complex group
+hierarchies can be easily created using subgroups.
 
-This module enables a user with the proper permissions to build group hierarchies (or tree) by nesting groups under other groups. Simple or complex group hierarchies can be easily created.
+Subgroups can automatically inherit the users and/or permissions of the parent
+group, but can also have additional specific users and permissions. Members can
+collaborate effectively within their respective groups and subgroups, sharing
+relevant content and resources.
 
-When a hierarchy has been established, user memberships and/or content posted to a group can be propagated up, down or sideways along the tree. So when a user joins a group, their membership can also get created in other parent, child or sibling groups. Separate propagation settings can be applied for content and membership propagation.
- 
-There are two types of propagation. The first type is group user inheritance,
-which allows users from a parent group to propagate to all child groups. This
-also propagates a user's permissions.
- 
-The second type is entity membership propagation. This allows an entity's
-membership to be propagated up or down the group hierarchy when adding a
-new group or group content to an existing group.
+When a hierarchy has been established, user memberships and/or content posted to
+a group can be propagated up, down or sideways along the tree. So when a user
+joins a group, their membership can also get created in other parent, child or
+sibling groups. Separate propagation settings can be applied for content and
+membership propagation.
+
+There are two types of propagation:
+
+1. The first type is **Group user inheritance** that allows users of a group to
+propagate to subgroups.
+
+2. The second type is **Group user permission inheritance** that determines how
+permissions are applied to inherited users including group administration and
+access to group content.
+
+This allows an entity's membership to be propagated up or down the group
+hierarchy when adding a new group or group content to an existing group.
 
 ## Installation & Configuration
 
@@ -32,8 +44,9 @@ For basic user membership inheritance:
 This module provides two fields under /admin/config/group/fields:
 - Group user inheritance: Determines if the subgroups of a group will inherit its users
 - Group user permission inheritance: Determines how permissions are given for inherited users
- 
-For more information, search the Drupal 7 version issue queue, and this module's issue queue. Some helpful posts:
+
+For more information, search the Drupal 7 version issue queue, and this module's
+issue queue. Some helpful posts:
 - https://www.drupal.org/project/og_subgroups/issues/1969242
 - https://www.drupal.org/project/og_subgroups/issues/2572931
 - https://www.drupal.org/node/1345212
